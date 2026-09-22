@@ -279,16 +279,69 @@ input:hover, select:hover { border-color: #8e9892; }
 }
 
 .record h3 {
-  margin: 0 0 8px;
+  margin: 0;
   font-family: inherit;
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--ink);
 }
 
-.kv { display: flex; flex-wrap: wrap; gap: 6px 14px; margin-top: 6px; }
-.kv span { color: var(--reading); font-size: 14px; line-height: 1.45; }
-.kv b { color: var(--ink); font-weight: 700; }
+.record-co {
+  margin: 2px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.block-title {
+  margin: 14px 0 0;
+  color: var(--kiln);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.kv {
+  display: grid;
+  gap: 10px 12px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--rule);
+}
+
+.kv-meta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kv-chem { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.kv-mech { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.kv-sheet { grid-template-columns: repeat(auto-fit, minmax(8.2em, 1fr)); }
+
+.stat { min-width: 0; }
+
+.stat b {
+  display: block;
+  font-weight: 600;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--muted);
+}
+
+.stat em {
+  display: block;
+  margin-top: 3px;
+  font-style: normal;
+  font-variant-numeric: tabular-nums;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--ink);
+  overflow-wrap: anywhere;
+}
+
+.kv-chem .stat em,
+.kv-mech .stat em {
+  font-size: 16px;
+  white-space: nowrap;
+}
+
+.stat-wide { grid-column: 1 / -1; }
 
 .toolbar {
   display: flex;
@@ -302,12 +355,14 @@ input:hover, select:hover { border-color: #8e9892; }
 .toolbar .grow { flex: 1 1 220px; min-width: 0; }
 .toolbar .primary, .toolbar .ghost { min-height: 44px; }
 
-.count { color: var(--muted); font-size: 14px; }
+.count { margin-left: auto; color: var(--muted); font-size: 14px; }
 
 @media (max-width: 860px) {
   .layout { grid-template-columns: 1fr; }
   .layout > form.panel { position: static; }
   .nameplate h1, .home h1 { font-size: 26px; }
+  .kv-chem, .kv-meta { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .kv-mech { grid-template-columns: 1fr 1fr; }
   .shell { width: min(100% - 20px, 1080px); }
 }
 

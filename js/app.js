@@ -681,13 +681,20 @@ function cell(row, key) {
   return String(value);
 }
 
-function kv(row, group) {
+function kv(row, group, kind) {
+  const keepEmpty = kind === "chem" || kind === "mech";
   const parts = group.map(([label, key, suffix]) => {
     const value = cell(row, key);
-    return value ? `<span><b>${esc(label)}</b>${esc(value)}${esc(suffix || "")}</span>` : "";
+    if (!value && !keepEmpty) return "";
+    const name = String(label).replace(/：$/, "").replace(/:$/, "");
+    const wide = /外包|种类|工艺|冷却/.test(String(key));
+    const shown = value ? value + (suffix || "") : "—";
+    return `<span class="stat${wide ? " stat-wide" : ""}"><b>${esc(name)}</b><em>${esc(shown)}</em></span>`;
   }).filter(Boolean);
-  return parts.length ? `<div class="kv">${parts.join("")}</div>` : "";
+  if (!parts.length) return "";
+  return `<div class="kv kv-${kind || "sheet"}">${parts.join("")}</div>`;
 }
+
 
 function renderMine() {
   app.innerHTML = shell("矿山原料性能查询", `<div class="stack">
@@ -759,7 +766,7 @@ function paintMine() {
     [["抗压强度：", "抗压强度（MPa）", " MPa"], ["磨蚀性：", "磨蚀性（g）", " g"], ["易磨性：", "易磨性（KWh/t）", " KWh/t"]]
   ];
   document.querySelector("#cards").innerHTML = mineResult.map((row) => {
-    return `<article class="card record"><h3>${esc(cell(row, "公司名称"))} · ${esc(cell(row, "矿山名称"))}</h3>${groups.map((group) => kv(row, group)).join("")}</article>`;
+    return `<article class="card record"><h3>${esc(cell(row, "矿山名称"))}</h3><p class="record-co">${esc(cell(row, "公司名称"))}</p>${groups.map((group, index) => kv(row, group, ["meta", "chem", "mech"][index])).join("")}</article>`;
   }).join("");
 }
 
@@ -868,8 +875,8 @@ function paintWear() {
   ];
   document.querySelector("#cards").innerHTML = wearResult.map((row, index) => {
     return `<article class="card record"><h3>${index + 1}. ${esc(cell(row, "材料牌号"))} 【${esc(cell(row, "类别"))}】</h3>${groups.map(([title, group]) => {
-      const body = kv(row, group);
-      return body ? `<div class="kv"><b>${esc(title)}</b></div>${body}` : "";
+      const body = kv(row, group, "sheet");
+      return body ? `<div class="block-title">${esc(title)}</div>${body}` : "";
     }).join("")}</article>`;
   }).join("");
 }
