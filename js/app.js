@@ -142,15 +142,17 @@ function bindChrome() {
 }
 
 function renderLogin(message) {
-  app.innerHTML = `<div class="login-wrap"><form class="login-card stack" id="login-form">
-    <h1>核心备件智能预测系统</h1>
-    <p class="sub">请输入账号密码登录系统</p>
-    <label class="field"><span>账号</span><input id="account" autocomplete="username" placeholder="请输入账号"></label>
-    <label class="field"><span>密码</span><input id="password" type="password" autocomplete="current-password" placeholder="请输入密码"></label>
-    <div class="error" id="login-error">${esc(message || "")}</div>
+  app.innerHTML = `<div class="login-wrap"><form class="plate stack" id="login-form">
+    <header class="nameplate">
+      <h1>冀东装备</h1>
+      <p>核心备件智能预测系统</p>
+    </header>
+    <label class="field"><span>账号</span><input id="account" name="username" autocomplete="username" spellcheck="false" placeholder="请输入账号…"></label>
+    <label class="field"><span>密码</span><input id="password" name="password" type="password" autocomplete="current-password" placeholder="请输入密码…"></label>
+    <div class="error" id="login-error" role="alert">${esc(message || "")}</div>
     <div class="row-actions">
       <button class="primary" type="submit">登录</button>
-      <button class="ghost" type="button" id="reset-login">重置</button>
+      <button class="ghost" type="button" id="reset-login">清空</button>
     </div>
     <div class="hint">
       管理员：冀东装备 / 123456（预测和查询）<br>
@@ -168,13 +170,16 @@ function renderLogin(message) {
       sessionStorage.setItem("jidong-role", "viewer");
       renderHome();
     } else {
-      document.querySelector("#login-error").textContent = "账号或密码错误，请重新输入！";
+      const error = document.querySelector("#login-error");
+      error.textContent = "账号或密码不对，请再试一次。";
       document.querySelector("#password").value = "";
+      document.querySelector("#password").focus();
     }
   };
   document.querySelector("#reset-login").onclick = () => {
     document.querySelector("#account").value = "";
     document.querySelector("#password").value = "";
+    document.querySelector("#account").focus();
   };
 }
 
@@ -183,21 +188,28 @@ function renderHome() {
   const admin = role() === "admin";
   const buttons = [];
   if (admin) {
-    buttons.push(["hammer", "锤头产量预测系统", "primary"]);
-    buttons.push(["roller", "辊套性能预测系统", "primary"]);
-    buttons.push(["disc", "磨盘寿命预测系统", "primary"]);
-    buttons.push(["grid", "篦板周期预测系统", "primary"]);
+    buttons.push(["hammer", "锤头产量预测", "predict", "按强度、磨蚀性和牌号估算产量"]);
+    buttons.push(["roller", "辊套性能预测", "predict", "估算辊套消耗、产量和磨损"]);
+    buttons.push(["disc", "磨盘寿命预测", "predict", "估算磨盘消耗、产量和磨损"]);
+    buttons.push(["grid", "篦板周期预测", "predict", "估算两个周期的运行时间和产量"]);
   }
-  buttons.push(["mine", "矿山原料性能查询", "soft"]);
-  buttons.push(["wear", "耐磨材料数据查询", "soft"]);
-  app.innerHTML = `<div class="home"><div class="home-card">
-    <h1>${admin ? "冀东装备核心备件智能预测系统" : "冀东装备材料性能查询系统"}</h1>
-    <p class="sub">${admin ? "基于 XGBoost 的锤头 / 辊套 / 磨盘 / 篦板预测平台" : "矿山原料与耐磨材料数据查询平台"}</p>
-    <div class="grid">
-      ${buttons.map(([id, label, kind]) => `<button class="${kind}" data-go="${id}">${label}</button>`).join("")}
+  buttons.push(["mine", "矿山原料查询", "query", "按矿山查看原料成分"]);
+  buttons.push(["wear", "耐磨材料查询", "query", "按牌号查看耐磨材料性能"]);
+  const title = admin ? "核心备件智能预测" : "材料性能查询";
+  const sub = admin
+    ? "按矿石性能预测锤头、辊套、磨盘和篦板。"
+    : "查询矿山原料和耐磨材料。";
+  app.innerHTML = `<div class="home"><main class="plate home-card">
+    <header class="nameplate">
+      <h1>冀东装备</h1>
+      <p>${title}</p>
+    </header>
+    <p class="sub">${sub}</p>
+    <div class="index">
+      ${buttons.map(([id, label, kind, note]) => `<button class="entry ${kind}" data-go="${id}"><span class="entry-text"><b>${esc(label)}</b><small>${esc(note)}</small></span></button>`).join("")}
     </div>
-    <p class="footer">© 2026 冀东装备 智能预测平台</p>
-  </div></div>`;
+    <p class="footer">© 2026 冀东装备</p>
+  </main></div>`;
   app.querySelectorAll("[data-go]").forEach((button) => {
     button.onclick = () => openModule(button.dataset.go);
   });
@@ -275,7 +287,7 @@ function renderHammer() {
         <article class="metric"><h3>更高产量牌号</h3><p id="rec-prod">等待预测分析...</p></article>
         <article class="metric"><h3>更高效益牌号</h3><p id="rec-eff">等待预测分析...</p></article>
       </div>
-      <pre class="analysis" id="advice">在左侧配置参数后点击“开始智能预测”。</pre>
+      <pre class="analysis" id="advice" role="status">在左侧配置参数后点击“开始智能预测”。</pre>
     </div>
   </div>`);
   bindChrome();
@@ -453,7 +465,7 @@ function renderParts(kind) {
         <article class="metric"><h3>更换产量（万吨）</h3><strong id="m2">等待预测</strong><p id="r2">评级: -</p></article>
         <article class="metric"><h3>磨损量（kg）</h3><strong id="m3">等待预测</strong><p id="r3">评级: -</p></article>
       </div>
-      <pre class="analysis" id="advice">在左侧配置参数后点击“开始智能预测”。</pre>
+      <pre class="analysis" id="advice" role="status">在左侧配置参数后点击“开始智能预测”。</pre>
     </div>
   </div>`);
   bindChrome();
@@ -567,7 +579,7 @@ function renderGrid() {
         <article class="metric"><h3>低温端更换周期（天）</h3><strong id="m3">等待预测</strong><p id="r3">评级: -</p></article>
         <article class="metric"><h3>低温端更换产量（万吨）</h3><strong id="m4">等待预测</strong><p id="r4">评级: -</p></article>
       </div>
-      <pre class="analysis" id="advice">在左侧配置参数后点击“开始智能预测”。</pre>
+      <pre class="analysis" id="advice" role="status">在左侧配置参数后点击“开始智能预测”。</pre>
     </div>
   </div>`);
   bindChrome();
