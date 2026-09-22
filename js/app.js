@@ -881,5 +881,4 @@ function paintWear() {
   }).join("");
 }
 
-if (role()) renderHome();
-else renderLogin();
+/* platform.js boots the interface */
